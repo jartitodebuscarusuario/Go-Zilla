@@ -43,6 +43,9 @@ var lockchanhash sync.RWMutex
 var err error
 //var f, _ = os.Create("D:\\agracia\\Documents\\g\\perl\\GoReport_server.txt")
 
+var hashinf map[string]map[string]map[string]int
+//var infchan chan map[string]map[string]map[string]int
+
 func main() {
     /*args := os.Args
 	
@@ -76,6 +79,29 @@ func main() {
 	chanhash["2CD2B0DA-C87B-11E7-82D9-DDF68153C7F6"] = make(map[string] chan map[string]int)
 	chanhash["2CD2B0DA-C87B-11E7-82D9-DDF68153C7F6"]["0"] = make(chan map[string]int)
 	lockchanhash.Unlock()*/
+	//Init chaninf
+	chaninf := make(chan map[string]map[string]map[string]int)
+	
+	//Init hashinf
+	hashinf = map[string]map[string]map[string]int{
+		"infpatata": map[string]map[string]int {
+			"vmpatata": map[string]int {
+				"cpu": 66,
+				"mem": 99,
+			},
+		},
+	}
+	
+	//Only one goroutine to read/write hashinf
+	go func() {
+		for {
+			thashinf := <- chaninf
+			for k, v := range thashinf {
+			    hashinf[k] = v
+			}
+			wprint(hashinf)
+		}
+	}()
 	
     // Listen for incoming connections.
     l, err := net.Listen(CONN_TYPE, CONN_HOST+":"+CONN_PORT)
@@ -94,12 +120,12 @@ func main() {
             os.Exit(1)
         }
         // Handle connections in a new goroutine.
-        go handleRequest(conn)
+        go handleRequest(conn,chaninf)
     }
 }
 
 // Handles incoming requests.
-func handleRequest(conn net.Conn) {
+func handleRequest(conn net.Conn, chaninf chan map[string]map[string]map[string]int) {
   // Vars to hold json received data and channel read
   // var message data
   //var message interface{}
@@ -133,26 +159,35 @@ func handleRequest(conn net.Conn) {
   // Close the connection when you're done with it.
   conn.Close()
   
-  lockchanhash.RLock()
-  if infvmidchan, ok := chanhash[message.Infid][message.Vmid]; ok {
-	  wprint("Existe el canal" + message.Infid + " " + message.Vmid)
-	  <- infvmidchan
-	  infvmidchan <- message.Data
-  } else {
-	  wprint("No existe el canal " + message.Infid + " " + message.Vmid)
-	  lockchanhash.RUnlock()
-      lockchanhash.Lock()
-      wprint("Creando el canal " + message.Infid + " " + message.Vmid + " ...")
-	  //Initialize chan with size for non-blocking writes in goroutines
-	  chanhash[message.Infid] = make(map[string] chan map[string]int, 1)
-	  chanhash[message.Infid][message.Vmid] = make(chan map[string]int, 1)
-	  wprint("Creado el canal" + message.Infid + " " + message.Vmid)
-	  lockchanhash.Unlock()
-	  wprint("Desbloqueada la escritura en el canal " + message.Infid + " " + message.Vmid)
-	  lockchanhash.RLock()
-	  wprint("Bloqueo de lectura en el canal " + message.Infid + " " + message.Vmid)
-	  chanhash[message.Infid][message.Vmid] <- message.Data
-	  wprint("Enviados datos",message.Data,"al canal " + message.Infid + " " + message.Vmid)
+  smessage := map[string]map[string]map[string]int{
+	  message.Infid: map[string]map[string]int{
+	  	message.Vmid: message.Data,
+	  },
   }
-  lockchanhash.RUnlock()
+  
+  wprint("Before writing to infchan ...")
+  chaninf <- smessage
+  wprint("After writing to infchan ...")
+//  lockchanhash.RLock()
+//  if infvmidchan, ok := chanhash[message.Infid][message.Vmid]; ok {
+//	  wprint("Existe el canal" + message.Infid + " " + message.Vmid)
+//	  <- infvmidchan
+//	  infvmidchan <- message.Data
+//  } else {
+//	  wprint("No existe el canal " + message.Infid + " " + message.Vmid)
+//	  lockchanhash.RUnlock()
+//      lockchanhash.Lock()
+//      wprint("Creando el canal " + message.Infid + " " + message.Vmid + " ...")
+//	  //Initialize chan with size for non-blocking writes in goroutines
+//	  chanhash[message.Infid] = make(map[string] chan map[string]int, 1)
+//	  chanhash[message.Infid][message.Vmid] = make(chan map[string]int, 1)
+//	  wprint("Creado el canal" + message.Infid + " " + message.Vmid)
+//	  lockchanhash.Unlock()
+//	  wprint("Desbloqueada la escritura en el canal " + message.Infid + " " + message.Vmid)
+//	  lockchanhash.RLock()
+//	  wprint("Bloqueo de lectura en el canal " + message.Infid + " " + message.Vmid)
+//	  chanhash[message.Infid][message.Vmid] <- message.Data
+//	  wprint("Enviados datos",message.Data,"al canal " + message.Infid + " " + message.Vmid)
+//  }
+//  lockchanhash.RUnlock()
 }
