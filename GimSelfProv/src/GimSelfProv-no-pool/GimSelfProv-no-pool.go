@@ -51,55 +51,36 @@ var lockchanhash sync.RWMutex
 // Var to hold file
 //var f *os.File
 var err error
-//var f, _ = os.Create("D:\\agracia\\Documents\\g\\perl\\GoReport_server.txt")
-
-//var hashinf map[string]map[string]map[string]int
-//var infchan chan map[string]map[string]map[string]int
 
 func main() {
-    /*args := os.Args
-	
-	//wprint("args 0",args,len(args))
-	
-	if len(args) > 1 {
-		noprint, err = strconv.ParseBool(args[1])
-		if err != nil {
-	        noprint = false
-	    }
-	} else {
-		noprint = false
-	}*/
-    
+
     var CONN_HOST string
     var CONN_TYPE string
     var CONN_PORT string
+    
+    var nvm int
     //var fnoprint string
     
     flag.StringVar(&CONN_HOST, "host", "agracia7", "Hostname to bind (default: agracia7)")
     flag.StringVar(&CONN_PORT, "port", "8888", "Hostname to bind (default: 8888)")
     flag.StringVar(&CONN_TYPE, "type", "tcp", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
+    flag.IntVar(&nvm, "nvm", 1, "Machines per inf (default: 1)")
     
     flag.Parse()
     
     // Open file to write received data
 	//f, err = os.Create("D:\\agracia\\Documents\\g\\perl\\GoReport_server.txt")
 	
-	/*lockchanhash.Lock()
-	chanhash["2CD2B0DA-C87B-11E7-82D9-DDF68153C7F6"] = make(map[string] chan map[string]int)
-	chanhash["2CD2B0DA-C87B-11E7-82D9-DDF68153C7F6"]["0"] = make(chan map[string]int)
-	lockchanhash.Unlock()*/
-	//Init chaninf
-	//chaninf := make(chan map[string]map[string]map[string]int)
 	//Channel to send inf data to hashwriter
 	chaninf := make(chan *Tmessage)
 	
-	//Init hashinf
+	//Init hashes
 	hashinf = make(map[string]map[string]map[string]int)
 	hashconf = make(map[string]map[string]int)
 	hashalarm = make(map[string]map[string][]bool)
 	//hashtimer := make(map[string]time.Timer)
-	//evalsp, _ := strconv.Atoi("cpu")
+	
 	evalsp = map[string]int{
 		"cpu": 0,
 		"mem": 1,
@@ -116,16 +97,8 @@ func main() {
 		"tactsp": 10,
 		"maxvm": 4,
 		"minvm": 1,
+		"nvm": nvm,
 	}
-	
-//	hashinf = map[string]map[string]map[string]int{
-//		"infpatata": map[string]map[string]int {
-//			"vmpatata": map[string]int {
-//				"cpu": 66,
-//				"mem": 99,
-//			},
-//		},
-//	}
 
 	const nTmessage = 1000000
 	const ninfids = 100
@@ -156,12 +129,12 @@ func main() {
 	
 	bcknoprint := noprint;
 	noprint = true
-	start := time.Now()
+	mstart := time.Now()
 	for i := 0; i < nTmessage; i++ {
 		chaninf <- prueba[i]
 	}
-	t := time.Now()
-	fmt.Println("Done in",t.Sub(start))
+	mt := time.Now()
+	fmt.Println("Done in",mt.Sub(mstart))
 	noprint = bcknoprint;
 	
     // Listen for incoming connections.
@@ -187,31 +160,15 @@ func main() {
 
 // Handles incoming requests.
 func handleRequest(conn net.Conn, chaninf chan *Tmessage) {
-  // Vars to hold json received data and channel read
-  // var message data
-  //var message interface{}
-  //var message Mondata
-  //var vmdata map[string]int
+
   // Make a buffer to hold incoming data.
   dec := gob.NewDecoder(conn)
   message := &Tmessage{}
   dec.Decode(message)
-  /* request := make([]byte, 1024)
-  // Read the incoming connection into the buffer.
-  read_len, err := conn.Read(request)
-  if err != nil {
-    fmt.Println("Error reading:", err.Error())
-  }
+
   // Write received data to disk
-  f.Write(request[:read_len])
+  //f.Write(request[:read_len])
 
-  var dmessage Tmessage
-  gob.NewDecoder(bytes.NewBuffer(request[:read_len])).Decode(&dmessage)
-  wprint(dmessage)
-  
-  message := &dmessage*/
-
-  //json.Unmarshal(request[:read_len], &message)
   wprint(message.Infid,message.Vmid,message.Data,message.Data["cpu"],message.Data["mem"])
   
   // Send a response back to person contacting us.
@@ -220,38 +177,11 @@ func handleRequest(conn net.Conn, chaninf chan *Tmessage) {
   // Close the connection when you're done with it.
   conn.Close()
   
-  /*smessage := map[string]map[string]map[string]int{
-	  message.Infid: map[string]map[string]int{
-	  	message.Vmid: message.Data,
-	  },
-  }*/
-  
   wprint("Before writing to infchan ...")
-  //chaninf <- smessage
+
   chaninf <- message
   wprint("After writing to infchan ...")
-//  lockchanhash.RLock()
-//  if infvmidchan, ok := chanhash[message.Infid][message.Vmid]; ok {
-//	  wprint("Existe el canal" + message.Infid + " " + message.Vmid)
-//	  <- infvmidchan
-//	  infvmidchan <- message.Data
-//  } else {
-//	  wprint("No existe el canal " + message.Infid + " " + message.Vmid)
-//	  lockchanhash.RUnlock()
-//      lockchanhash.Lock()
-//      wprint("Creando el canal " + message.Infid + " " + message.Vmid + " ...")
-//	  //Initialize chan with size for non-blocking writes in goroutines
-//	  chanhash[message.Infid] = make(map[string] chan map[string]int, 1)
-//	  chanhash[message.Infid][message.Vmid] = make(chan map[string]int, 1)
-//	  wprint("Creado el canal" + message.Infid + " " + message.Vmid)
-//	  lockchanhash.Unlock()
-//	  wprint("Desbloqueada la escritura en el canal " + message.Infid + " " + message.Vmid)
-//	  lockchanhash.RLock()
-//	  wprint("Bloqueo de lectura en el canal " + message.Infid + " " + message.Vmid)
-//	  chanhash[message.Infid][message.Vmid] <- message.Data
-//	  wprint("Enviados datos",message.Data,"al canal " + message.Infid + " " + message.Vmid)
-//  }
-//  lockchanhash.RUnlock()
+
 }
 
 func hashwriter (chaninf chan *Tmessage) {
@@ -280,6 +210,29 @@ func hashwriter (chaninf chan *Tmessage) {
 		}
 		
 		wprint(hashinf)
+		
+		var totalcpu, totalmem, upcpu, downcpu, upmem, downmem int
+		
+		if len(hashinf[tmessage.Infid]) == hashconf[tmessage.Infid]["nvm"] {
+			
+			totalcpu, totalmem = evalselfprov(tmessage.Infid, hashinf[tmessage.Infid])
+			hashinf[tmessage.Infid] = make(map[string]map[string]int)
+			if totalcpu > hashconf[tmessage.Infid]["upcpu"] {
+				upcpu = 1
+			}
+			if totalcpu < hashconf[tmessage.Infid]["downcpu"] {
+				downcpu = 1
+			}
+			if totalcpu > hashconf[tmessage.Infid]["upmem"] {
+				upmem = 1 
+			}
+			if totalcpu < hashconf[tmessage.Infid]["downmem"] {
+				downmem = 1 
+			}
+		}
+		
+		wprint(totalcpu, totalmem, upcpu, downcpu, upmem, downmem)
+
 		i++
 		if i >= nTmessage - 1 {
 			t := time.Now()
@@ -288,6 +241,35 @@ func hashwriter (chaninf chan *Tmessage) {
 			i = 0
 		}
 	}
+}
+
+func evalselfprov (infid string, infidhash map[string]map[string]int) (totalcpu int, totalmem int) {
+	
+//	var totalcpu int
+//	var totalmem int
+	
+	vtotal := make(map[string][]int)
+	
+	for _, value := range infidhash {
+	    vtotal["cpu"] = append(vtotal["cpu"], value["cpu"])
+	    vtotal["mem"] = append(vtotal["mem"], value["mem"])
+	}
+	
+	for _, value := range vtotal["cpu"] {
+		totalcpu += value
+	}
+	
+	for _, value := range vtotal["mem"] {
+		totalmem += value
+	}
+	
+	totalcpu = totalcpu/len(vtotal["cpu"])
+	totalmem = totalmem/len(vtotal["mem"])
+	
+//	fmt.Println(totalcpu/len(vtotal["cpu"]))
+//	fmt.Println(totalmem/len(vtotal["mem"]))
+	return totalcpu, totalmem
+
 }
 
 func wprint(param ...interface{}) {
