@@ -231,6 +231,7 @@ func hashwriter (chaninf chan *Tmessage) {
 			}
 		}
 		
+		//Check why this is not printing
 		wprint(totalcpu, totalmem, upcpu, downcpu, upmem, downmem)
 
 		i++
