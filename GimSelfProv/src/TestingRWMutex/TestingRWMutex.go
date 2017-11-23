@@ -108,7 +108,7 @@ func main() {
             os.Exit(1)
         }
         // Handle connections in a new goroutine.
-        go handleRequest(conn)
+        handleRequest(conn)
     }
 }
 
@@ -129,7 +129,18 @@ func handleRequest(conn net.Conn) {
   // Close the connection when you're done with it.
   conn.Close()
   
-  go infmap.addData(message)
+  infmap.addData(message)
+  
+  for key, value := range infmap.Data {
+  	wprint("key: ",key," =>")
+    for key, value := range value.Data {
+      wprint("key: ",key," =>")
+      for key, value := range value.Data {
+	    wprint("Key:", key, "Value:", value)
+      }
+      
+    }
+  }
   
 }
 
