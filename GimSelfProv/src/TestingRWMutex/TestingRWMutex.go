@@ -129,6 +129,12 @@ func handleRequest(conn net.Conn) {
   // Close the connection when you're done with it.
   conn.Close()
   
+  go infmap.addData(message)
+  
+}
+
+func (infmap Infmap) addData (message *Tmessage) {
+
   infmap.RLock()
   defer infmap.RUnlock()
    
@@ -161,13 +167,7 @@ func handleRequest(conn net.Conn) {
   infmap.Data[message.Infid].Data[message.Vmid].Data = message.Data
   
   wprint("Inf " + message.Infid + " instance " + message.Vmid, infmap.Data[message.Infid].Data[message.Vmid].Data)
-  
-}
-
-func wprint(param ...interface{}) {
-	if !noprint {
-		fmt.Println(param)
-	}
+	
 }
 
 func (infmap Infmap) vmidRLock(infid string, vmid string) {
@@ -214,3 +214,8 @@ func (infmap Infmap) infidUnlock(infid string) {
 	//infmap.RUnlock()
 }
 
+func wprint(param ...interface{}) {
+	if !noprint {
+		fmt.Println(param)
+	}
+}
