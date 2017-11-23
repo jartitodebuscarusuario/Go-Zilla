@@ -26,54 +26,8 @@ func wprint(param ...interface{}) {
 }
 
 var noprint bool
-/*var ninfids int
-var nvmids int
-var iter int
-var err error*/
 
 func main() {
-	
-	/*args := os.Args
-	
-	//wprint("args 0",args,len(args))
-	
-	if len(args) > 1 {
-		noprint, err = strconv.ParseBool(args[1])
-		if err != nil {
-	        noprint = false
-	    }
-	} else {
-		noprint = false
-	}
-	
-	if len(args) > 2 {
-		iter, err = strconv.Atoi(args[2])
-		if err != nil {
-	        iter = 1
-	    }
-	} else {
-		iter = 1
-	}
-	
-	if len(args) > 3 {
-		ninfids, err = strconv.Atoi(args[3])
-		if err != nil {
-	        ninfids = 1
-	    }
-	} else {
-		ninfids = 1
-	}
-	
-	if len(args) > 4 {
-		nvmids, err = strconv.Atoi(args[4])
-		if err != nil {
-	        nvmids = 1
-	    }
-	} else {
-		nvmids = 1
-	}
-	
-	fmt.Println(noprint,iter,ninfids,nvmids)*/
 	
 	var ninfids int
     var nvmids int
@@ -98,12 +52,10 @@ func main() {
 	
 	for i := 0; i < ninfids; i++ {
 		infid := uuid.NewV1()
-		//infidarray[i] = fmt.Sprintf("%s", infid)
 		infidarray = append(infidarray, fmt.Sprintf("%s", infid))
 	}
 	
 	for i := 0; i < nvmids; i++ {
-		//vmidarray[i] = strconv.Itoa(i)
 		vmidarray = append(vmidarray, strconv.Itoa(i))
 	}
 	
@@ -131,24 +83,10 @@ func main() {
 	
 			infid := rand.Intn(ninfids)
 			vmid := rand.Intn(nvmids)
-			//cpu := strconv.Itoa(rand.Intn(100))
-			//mem := strconv.Itoa(rand.Intn(100))
-			//cmessage := new(bytes.Buffer)
-		    //gob.NewEncoder(cmessage).Encode(Tmessage{Infid:infidarray[infid],Vmid:vmidarray[vmid],Data:map[string]int{"cpu":rand.Intn(100),"mem":rand.Intn(100)}})
-			//wprint("message:",Tmessage{Infid:infidarray[infid],Vmid:vmidarray[vmid],Data:map[string]int{"cpu":rand.Intn(100),"mem":rand.Intn(100)}})
-			//strEcho := "{\"infid\":\"" + infidarray[infid] + "\",\"vmid\":\"" + vmidarray[vmid] + "\",\"data\":{ \"cpu\": " + cpu + ",\"mem\": " + mem + " }}\n"
-			//wprint(strEcho)
-		    //_, err = conn.Write([]byte(strEcho))
 		    encoder := gob.NewEncoder(conn)
 		    cmessage := &Tmessage{Infid:infidarray[infid],Vmid:vmidarray[vmid],Data:map[string]int{"cpu":rand.Intn(100),"mem":rand.Intn(100)}}
 		    encoder.Encode(cmessage)
-		    /*_, err = conn.Write(cmessage.Bytes())
-			    if err != nil {
-		        fmt.Println("Write to server failed:", err.Error())
-		        os.Exit(1)
-		    }*/
-	
-		    //wprint("write to server = ", strEcho)
+
 		    wprint("write to server = ", *cmessage)
 	
 		    reply := make([]byte, 1024)
