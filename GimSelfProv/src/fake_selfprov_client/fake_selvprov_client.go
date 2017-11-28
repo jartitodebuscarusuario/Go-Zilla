@@ -40,9 +40,9 @@ func main() {
     flag.IntVar(&ninfids, "ninfids", 1, "Number of infids (default: 1)")
     flag.IntVar(&nvmids, "nvmids", 1, "Number of vmids (default: 1)")
     flag.IntVar(&iter, "iter", 1, "Number of iterations (default: 1)")
-    flag.StringVar(&CONN_HOST, "host", "agracia7", "Hostname to connect to (default: agracia7)")
+    flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to connect to (default: agracia7)")
     flag.StringVar(&CONN_PORT, "port", "8888", "Port to connect to (default: 8888)")
-    flag.StringVar(&CONN_TYPE, "type", "tcp", "Connection type (default: tcp)")
+    flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
     
     flag.Parse()
@@ -59,7 +59,7 @@ func main() {
 		vmidarray = append(vmidarray, strconv.Itoa(i))
 	}
 	
-    servAddr := CONN_HOST + ":" + CONN_PORT
+    servAddr := "[" + CONN_HOST + "]:" + CONN_PORT
     tcpAddr, err := net.ResolveTCPAddr(CONN_TYPE, servAddr)
     if err != nil {
         fmt.Println("ResolveTCPAddr failed:", err.Error())
@@ -75,7 +75,7 @@ func main() {
 		//wg.Add(1)
 		go func(wg *sync.WaitGroup) {
 			//fmt.Println("Go in goroutine ...")
-			conn, err := net.DialTCP("tcp", nil, tcpAddr)
+			conn, err := net.DialTCP(CONN_TYPE, nil, tcpAddr)
 			if err != nil {
 			        fmt.Println("Dial failed:", err.Error())
 			        os.Exit(1)
@@ -84,7 +84,14 @@ func main() {
 			infid := rand.Intn(ninfids)
 			vmid := rand.Intn(nvmids)
 		    encoder := gob.NewEncoder(conn)
-		    cmessage := &Tmessage{Infid:infidarray[infid],Vmid:vmidarray[vmid],Data:map[string]int{"cpu":rand.Intn(100),"mem":rand.Intn(100)}}
+		    cmessage := &Tmessage{
+		    	Infid:infidarray[infid],
+		    	Vmid:vmidarray[vmid],
+		    	Data:map[string]int{
+		    		"cpu":rand.Intn(100),
+		    		"mem":rand.Intn(100),
+		        },
+		    }
 		    encoder.Encode(cmessage)
 
 		    wprint("write to server = ", *cmessage)
@@ -96,10 +103,9 @@ func main() {
 		        fmt.Println("Write to server failed:", err.Error())
 		        os.Exit(1)
 		    }
-	
+			conn.Close()
 		    wprint("reply from server=", string(reply))
-	
-		    conn.Close()
+		    //time.Sleep(100 * time.Millisecond)
 		    wg.Done()
 		}(&wg)
     }
