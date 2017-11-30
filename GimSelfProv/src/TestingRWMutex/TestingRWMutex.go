@@ -11,10 +11,10 @@ import (
     //"strconv"
     //"math/rand"
     //"strconv"
-    //"encoding/json"
+    "encoding/json"
+    //"encoding/gob"
     //"bytes"
     //"github.com/satori/go.uuid"
-    "encoding/gob"
 )
 
 //Type to store monitored data from remote instances
@@ -46,9 +46,11 @@ type Infmap struct {
 
 //Global vars
 var noprint bool
-var infmap Infmap
+//var infmap Infmap
+var infmap *Infmap
 var evalsp map[string]int
 var nvm int
+var encoder string
 //var timeCounter int32
 //var timeElapsed time.Duration
 
@@ -63,6 +65,7 @@ func main() {
     flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", true, "Supress output (default: false)")
     flag.IntVar(&nvm, "nvm", 1, "Machines per inf (default: 1)")
+    flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
     flag.Parse()
     
@@ -70,7 +73,9 @@ func main() {
 	//f, err = os.Create("D:\\agracia\\Documents\\g\\perl\\GoReport_server.txt")
 	
 	//Initialize infmap
-	infmap.Data = map[string]*Infdata{}
+	infmap = &Infmap{ Data: map[string]*Infdata{} }
+	//infmap.Data = map[string]*Infdata{}
+	
 	//Initialize evasp (how we evaluate sp)
 	evalsp = map[string]int{
 		"cpu": 0,
@@ -109,20 +114,19 @@ func handleRequest(conn net.Conn) {
   	
   //defer conn.Close()
   // Make a buffer to hold incoming data.
-  dec := gob.NewDecoder(conn)
+  //dec := gob.NewDecoder(conn)
+  dec := json.NewDecoder(conn)
+	
+  for dec.More() {
   message := &Tmessage{}
   dec.Decode(message)
-
   // Write received data to disk
   //f.Write(request[:read_len])
   
   // Send a response back to person contacting us.
   conn.Write([]byte("Message received " + message.Infid + " " + message.Vmid))
-  
-  // Close the connection when you're done with it.
-  conn.Close()
-  
-  //go func() {
+
+  //TEST
   start := time.Now()
   
   checkInfid(message.Infid)
@@ -132,19 +136,35 @@ func handleRequest(conn net.Conn) {
   wprint("Added data", message.Data, "to vmid", message.Vmid, "in infid", message.Infid)
   
   wprint("timeCounter: ", time.Now().Sub(start))
+  //TEST  
+  
+  }
+  // Close the connection when you're done with it.
+  conn.Close()
+  
+  //go func() {
+//  start := time.Now()
+//  
+//  checkInfid(message.Infid)
+//  checkVmid(message.Infid, message.Vmid)
+//  addData2InfidVmid(message.Infid, message.Vmid, message.Data)
+//  evaluatesp(message.Infid)
+//  wprint("Added data", message.Data, "to vmid", message.Vmid, "in infid", message.Infid)
+//  
+//  wprint("timeCounter: ", time.Now().Sub(start))
   
 //  infmap.RLock()
 //  defer infmap.RUnlock()
 //  for key, value := range infmap.Data {
-//  	wprint("key: ",key," =>")
+//  	fmt.Println("key: ",key," =>")
 //    for key, value := range value.Data {
-//      wprint("key: ",key," =>")
+//      fmt.Println("key: ",key," =>")
 //      for key, value := range value.Data {
-//	    wprint("Key:", key, "Value:", value)
+//	    fmt.Println("Key:", key, "Value:", value)
 //      }
-//      
 //    }
 //  }
+//  fmt.Println("====================================")
   
 }
 
@@ -161,10 +181,15 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 
   infmap.RLock()
   infmap.Data[infid].RLock()
+  //infmap.infidRLock(infid)
+  //defer infmap.infidRUnlock(infid)
   //Add received data
   infmap.Data[infid].Data[vmid].Lock()
   infmap.Data[infid].Data[vmid].Data = data
   infmap.Data[infid].Data[vmid].Unlock()
+  //infmap.AddVmidData(infid, vmid, data)
+  //infmap.RLock()
+  //infmap.Data[infid].RLock()
   
   if (infmap.Data[infid].Conf["activesp"] > 0) {
 	  
@@ -189,9 +214,9 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 	  	infmap.Data[infid].Data[vmid].RUnlock()
 	  }
 	  //Only evaluate if have values in all machines in infid
-	  fmt.Println("Count: ", count, " nvm ", infmap.Data[infid].Conf["nvm"])
+	  wprint("Count: ", count, " nvm ", infmap.Data[infid].Conf["nvm"])
 	  if count == infmap.Data[infid].Conf["nvm"] {
-	  fmt.Println("Evaluating in infid " + infid + " paramsp " + paramsp + " average ", sum/count)	
+	  wprint("Evaluating in infid " + infid + " paramsp " + paramsp + " average ", sum/count)	
 	  average := sum/count	
 	  //Evaluate is received data over limits and modify Alarm slices
 		  if average > infmap.Data[infid].Conf["up" + paramsp] {
@@ -223,7 +248,27 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
   }
   infmap.Data[infid].RUnlock()
   infmap.RUnlock()
-  
+  //infmap.infidRUnlock(infid)
+}
+
+func (mapinf *Infmap)infidRLock(idinf string) {
+	mapinf.RLock()
+	mapinf.Data[idinf].RLock()
+}
+
+func (mapinf *Infmap)infidRUnlock(idinf string) {
+	mapinf.Data[idinf].RUnlock()
+	mapinf.RUnlock()
+}
+
+func (mapinf *Infmap)AddVmidData(idinf string, idvm string, vmdata map[string]int) {
+	mapinf.RLock()
+	defer mapinf.RUnlock()
+	mapinf.Data[idinf].RLock()
+	defer mapinf.Data[idinf].RUnlock()
+	mapinf.Data[idinf].Data[idvm].Lock()
+	defer mapinf.Data[idinf].Data[idvm].Unlock()
+	mapinf.Data[idinf].Data[idvm].Data = vmdata	
 }
 
 func evaluatesp (infid string) {
@@ -262,9 +307,9 @@ func evaluatesp (infid string) {
 	        infmap.Data[infid].Conf["activesp"] = 1
 	        infmap.Data[infid].Unlock()
 	        infmap.RUnlock()
-	        fmt.Println("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
+	        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
       	}(time2activesp, infid)
-      	fmt.Println("Triggered up" + paramsp + " sp for infid " + infid)
+      	wprint("Triggered up" + paramsp + " sp for infid " + infid)
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }
@@ -290,9 +335,9 @@ func evaluatesp (infid string) {
 	        infmap.Data[infid].Conf["activesp"] = 1
 	        infmap.Data[infid].Unlock()
 	        infmap.RUnlock()
-	        fmt.Println("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
+	        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
       	}(time2activesp, infid)
-      	fmt.Println("Triggered down" + paramsp + " sp for infid " + infid)
+      	wprint("Triggered down" + paramsp + " sp for infid " + infid)
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }

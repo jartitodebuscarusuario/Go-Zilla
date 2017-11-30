@@ -10,7 +10,8 @@ import (
     "math/rand"
     "github.com/satori/go.uuid"
     //"bytes"
-    "encoding/gob"
+    //"encoding/gob"
+    "encoding/json"
 )
 
 type Tmessage struct {
@@ -32,6 +33,9 @@ func main() {
 	var ninfids int
     var nvmids int
     var iter int
+    var nmessages int
+    var encoder string
+    
     var CONN_HOST string
     var CONN_TYPE string
     var CONN_PORT string
@@ -40,10 +44,12 @@ func main() {
     flag.IntVar(&ninfids, "ninfids", 1, "Number of infids (default: 1)")
     flag.IntVar(&nvmids, "nvmids", 1, "Number of vmids (default: 1)")
     flag.IntVar(&iter, "iter", 1, "Number of iterations (default: 1)")
+    flag.IntVar(&nmessages, "nmessages", 1, "Number of iterations (default: 1)")
     flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to connect to (default: agracia7)")
     flag.StringVar(&CONN_PORT, "port", "8888", "Port to connect to (default: 8888)")
     flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
+    flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
     flag.Parse()
 	
@@ -81,9 +87,12 @@ func main() {
 			        os.Exit(1)
 		    }
 	
+			for k := 0; k < nmessages; k++ {
+	
 			infid := rand.Intn(ninfids)
 			vmid := rand.Intn(nvmids)
-		    encoder := gob.NewEncoder(conn)
+		    //encoder := gob.NewEncoder(conn)
+		    encoder := json.NewEncoder(conn)
 		    cmessage := &Tmessage{
 		    	Infid:infidarray[infid],
 		    	Vmid:vmidarray[vmid],
@@ -103,13 +112,16 @@ func main() {
 		        fmt.Println("Write to server failed:", err.Error())
 		        os.Exit(1)
 		    }
-			conn.Close()
+			//conn.Close()
 		    wprint("reply from server=", string(reply))
 		    //time.Sleep(100 * time.Millisecond)
+		}
+		    conn.Close()
 		    wg.Done()
 		}(&wg)
     }
 	wg.Wait()
 	t := time.Now()
 	fmt.Println("Done in",t.Sub(start))
+	//time.Sleep(10 * time.Second)
 }
