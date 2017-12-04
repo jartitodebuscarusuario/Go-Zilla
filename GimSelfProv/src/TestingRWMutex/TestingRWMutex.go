@@ -1,4 +1,4 @@
-package main
+package TestingRWMutex
 
 import (
 	"flag"
@@ -179,17 +179,19 @@ func handleRequest(conn net.Conn) {
 
 func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 
-  infmap.RLock()
-  infmap.Data[infid].RLock()
+  //infmap.RLock()
+  //infmap.Data[infid].RLock()
   //infmap.infidRLock(infid)
   //defer infmap.infidRUnlock(infid)
   //Add received data
-  infmap.Data[infid].Data[vmid].Lock()
-  infmap.Data[infid].Data[vmid].Data = data
-  infmap.Data[infid].Data[vmid].Unlock()
-  //infmap.AddVmidData(infid, vmid, data)
+  //infmap.Data[infid].Data[vmid].Lock()
+  //infmap.Data[infid].Data[vmid].Data = data
+  //infmap.Data[infid].Data[vmid].Unlock()
+  infmap.AddVmidData(infid, vmid, data)
   //infmap.RLock()
   //infmap.Data[infid].RLock()
+  infmap.infidRLock(infid)
+  defer infmap.infidRUnlock(infid)
   
   if (infmap.Data[infid].Conf["activesp"] > 0) {
 	  
@@ -246,8 +248,8 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 		  }
 	  }
   }
-  infmap.Data[infid].RUnlock()
-  infmap.RUnlock()
+  //infmap.Data[infid].RUnlock()
+  //infmap.RUnlock()
   //infmap.infidRUnlock(infid)
 }
 
