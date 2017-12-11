@@ -1,4 +1,4 @@
-package fake_selfprov_client
+package main
 import (
 	"flag"
 	"fmt"
@@ -6,6 +6,7 @@ import (
     "net"
     "os"
     "sync"
+    "sync/atomic"
     "strconv"
     "math/rand"
     "github.com/satori/go.uuid"
@@ -27,6 +28,8 @@ func wprint(param ...interface{}) {
 }
 
 var noprint bool
+var rerrorcount int64
+var serrorcount int64
 
 func main() {
 	
@@ -52,6 +55,9 @@ func main() {
     flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
     flag.Parse()
+    
+    rerrorcount = 0
+    serrorcount = 0
 	
 	var infidarray []string
 	var vmidarray []string
@@ -84,7 +90,10 @@ func main() {
 			conn, err := net.DialTCP(CONN_TYPE, nil, tcpAddr)
 			if err != nil {
 			        fmt.Println("Dial failed:", err.Error())
-			        os.Exit(1)
+			        serrorcount = atomic.AddInt64(&serrorcount, 1)
+			        wg.Done()
+			        return
+			        //os.Exit(1)
 		    }
 	
 			for k := 0; k < nmessages; k++ {
@@ -102,26 +111,28 @@ func main() {
 		        },
 		    }
 		    encoder.Encode(cmessage)
-
 		    wprint("write to server = ", *cmessage)
 	
 		    reply := make([]byte, 1024)
 	
 		    _, err = conn.Read(reply)
-			    if err != nil {
-		        fmt.Println("Write to server failed:", err.Error())
-		        os.Exit(1)
+		    if err != nil {
+	        fmt.Println("Write to server failed (error reading reply):", err.Error())
+	        //os.Exit(1)
+	        rerrorcount = atomic.AddInt64(&rerrorcount, 1)
+	        wg.Done()
+	        return
 		    }
 			//conn.Close()
 		    wprint("reply from server=", string(reply))
 		    //time.Sleep(100 * time.Millisecond)
-		}
-		    conn.Close()
-		    wg.Done()
+		    }
+	    conn.Close()
+	    wg.Done()
 		}(&wg)
     }
 	wg.Wait()
 	t := time.Now()
-	fmt.Println("Done in",t.Sub(start))
+	fmt.Println("Done in",t.Sub(start)," Errors read: ",rerrorcount,"Errors connect: ",serrorcount)
 	//time.Sleep(10 * time.Second)
 }
