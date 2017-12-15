@@ -1,0 +1,10 @@
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true
+START .\fake_selfprov_client.exe -iter 10000 -ninfids 100 -noprint=true

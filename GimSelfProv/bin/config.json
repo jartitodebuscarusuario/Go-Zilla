@@ -1,0 +1,15 @@
+{
+	"activesp": 1,
+	"downcpu": 30,
+	"downmem": 20,
+	"evalsp": "cpu",
+	"maxvm": 4,
+	"minvm": 1,
+	"numalert": 3,
+	"numsamples": 5,
+	"nvm": 1,
+	"tactsp": 10,
+	"upcpu": 70,
+	"upmem": 80,
+	"nvm": 1
+}
