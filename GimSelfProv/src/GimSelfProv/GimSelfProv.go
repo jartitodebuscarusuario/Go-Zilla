@@ -43,7 +43,7 @@ func main() {
   }
     
   //Load default conf from file
-  defconf = readConf(dir + "\\config.json")
+  defconf = readConf(dir + "/config.json")
 	
   fmt.Println(defconf)
 	
