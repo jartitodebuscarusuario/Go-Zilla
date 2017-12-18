@@ -1,6 +1,6 @@
 {
 	"activesp": 1,
-	"downcpu": 30,
+	"downcpu": 60,
 	"downmem": 20,
 	"evalsp": "cpu",
 	"maxvm": 4,
@@ -9,7 +9,7 @@
 	"numsamples": 5,
 	"nvm": 1,
 	"tactsp": 10,
-	"upcpu": 70,
+	"upcpu": 90,
 	"upmem": 80,
 	"imhost": "http://104.155.107.21:8080",
 	"radl" : "network publica (outbound = 'yes' and outports = '80,8080,3306')\nnetwork privada ()\nsystem front\ndeploy front 1",
