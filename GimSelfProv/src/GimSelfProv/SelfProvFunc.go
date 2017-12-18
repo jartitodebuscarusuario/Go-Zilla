@@ -32,6 +32,12 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp))
+		if VmAdded, ok := deployVm2Inf(infid); ok {
+			wprint("Succesfully added vm", VmAdded)
+		} else {
+			wprint("Error adding vm, exiting")
+			//os.Exit(1)
+		}
       	go func (time int, infid string) {
       		<-timer.C
 	        // If main() finishes before the 60 second timer, we won't get here
@@ -60,6 +66,14 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp))
+      	for VmAdded, _ := range infmap.Data[infid].Data {
+      		if ok := delVmFromInf(infid, VmAdded); ok {
+				wprint("Successfully deleted vm", VmAdded)
+			} else {
+				wprint("Error deleting vm", VmAdded)
+			}
+			break
+      	}
       	go func (time int, infid string) {
       		<-timer.C
 	        // If main() finishes before the 60 second timer, we won't get here

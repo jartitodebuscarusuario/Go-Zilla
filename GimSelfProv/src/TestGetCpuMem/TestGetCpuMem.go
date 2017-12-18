@@ -1,21 +1,31 @@
 package main
 
 import (
+    "os"
     "fmt"
+    "log"
     "time"
-    //"github.com/shirou/gopsutil/mem"
+    "path/filepath"
+    "github.com/shirou/gopsutil/mem"
     //"github.com/shirou/gopsutil/load"
     "github.com/shirou/gopsutil/cpu"
 )
 
 func main() {
-    //v, _ := mem.VirtualMemory()
+	
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+            log.Fatal(err)
+    }
+    fmt.Println(dir)
+    
+    v, _ := mem.VirtualMemory()
 
     // almost every return value is a struct
-    //fmt.Printf("Total: %v, Free:%v, UsedPercent:%f%%\n", v.Total, v.Free, v.UsedPercent)
+    fmt.Printf("Total: %v, Free:%v, UsedPercent:%f%%\n", v.Total, v.Free, v.UsedPercent)
 
     // convert to JSON. String() is also implemented
-    //fmt.Println(v)
+    fmt.Println(v)
     
     //v, _ := load.Avg()
     
@@ -25,8 +35,11 @@ func main() {
     // convert to JSON. String() is also implemented
     //fmt.Println(v)
     
-    v, _ := cpu.Percent(15 * time.Second, false)
+    c, _ := cpu.Percent(15 * time.Second, false)
     
-    fmt.Printf("Percent(15, false): %v\n", v)
+    fmt.Printf("Percent(15, false): %v\n", c)
+    
+    // convert to JSON. String() is also implemented
+    fmt.Println(c[0])    
     
 }

@@ -5,6 +5,9 @@ import (
 	"time"
     "net"
     "os"
+    "log"
+    "path/filepath"
+    "io/ioutil"
     "sync"
     "sync/atomic"
     "strconv"
@@ -13,6 +16,8 @@ import (
     //"bytes"
     //"encoding/gob"
     "encoding/json"
+    "github.com/shirou/gopsutil/mem"
+    "github.com/shirou/gopsutil/cpu"
 )
 
 type Tmessage struct {
@@ -42,6 +47,7 @@ func main() {
     var CONN_HOST string
     var CONN_TYPE string
     var CONN_PORT string
+    var cpuPeriod interface{}
     //var fnoprint string
     
     flag.IntVar(&ninfids, "ninfids", 1, "Number of infids (default: 1)")
@@ -55,6 +61,28 @@ func main() {
     flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
     flag.Parse()
+    
+    dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+    if err != nil {
+            log.Fatal(err)
+    }
+    
+    defconf := readConf(dir + "\\clientConfig.json")
+    
+    //Conf file takes priority
+    if rhost, ok := defconf["host"]; ok {
+    	CONN_HOST = string(rhost.(string))
+    }
+    
+    if rport, ok := defconf["port"]; ok {
+    	CONN_PORT = string(rport.(string))
+    }
+    
+    if valCpu, ok := defconf["cpuPeriod"]; ok {
+    	cpuPeriod = int(valCpu.(int))
+    } else {
+    	cpuPeriod = 15
+    }
     
     rerrorcount = 0
     serrorcount = 0
@@ -102,12 +130,16 @@ func main() {
 			vmid := rand.Intn(nvmids)
 		    //encoder := gob.NewEncoder(conn)
 		    encoder := json.NewEncoder(conn)
+		    v, _ := mem.VirtualMemory()
+		    c, _ := cpu.Percent(cpuPeriod.(time.Duration) * time.Second, false)
 		    cmessage := &Tmessage{
 		    	Infid:infidarray[infid],
 		    	Vmid:vmidarray[vmid],
 		    	Data:map[string]int{
-		    		"cpu":rand.Intn(100),
-		    		"mem":rand.Intn(100),
+		    		//"cpu":rand.Intn(100),
+		    		//"mem":rand.Intn(100),
+		    		"cpu":int(c[0]),
+		    		"mem":int(v.UsedPercent),
 		        },
 		    }
 		    encoder.Encode(cmessage)
@@ -135,4 +167,17 @@ func main() {
 	t := time.Now()
 	fmt.Println("Done in",t.Sub(start)," Errors read: ",rerrorcount,"Errors connect: ",serrorcount)
 	//time.Sleep(10 * time.Second)
+}
+
+//Read config file in json format
+func readConf(file string) map[string]interface{} {
+	conf := make(map[string]interface{})
+	dat, err := ioutil.ReadFile(file)
+	var fconf interface{}
+	err = json.Unmarshal(dat, &fconf)
+		if err != nil {
+		  fmt.Println("error:", err)
+	}
+	conf = fconf.(map[string]interface{})
+	return conf
 }
