@@ -35,6 +35,8 @@ func wprint(param ...interface{}) {
 var noprint bool
 var rerrorcount int64
 var serrorcount int64
+var confInfid string
+var confVmid string
 
 func main() {
 	
@@ -56,7 +58,7 @@ func main() {
     flag.IntVar(&nmessages, "nmessages", 1, "Number of iterations (default: 1)")
     flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to connect to (default: ::1)")
     flag.StringVar(&CONN_PORT, "port", "8888", "Port to connect to (default: 8888)")
-    flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
+    flag.StringVar(&CONN_TYPE, "type", "tcp4", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
     flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
@@ -67,7 +69,7 @@ func main() {
             log.Fatal(err)
     }
     
-    defconf := readConf(dir + "\\clientConfig.json")
+    defconf := readConf(dir + "/clientConfig.json")
     
     //Conf file takes priority
     if rhost, ok := defconf["host"]; ok {
@@ -79,9 +81,17 @@ func main() {
     }
     
     if valCpu, ok := defconf["cpuPeriod"]; ok {
-    	cpuPeriod = int(valCpu.(int))
+    	cpuPeriod = int(valCpu.(float64))
     } else {
     	cpuPeriod = 15
+    }
+    
+    if valInfid, ok := defconf["infid"]; ok {
+    	confInfid = valInfid.(string)
+    }
+    
+    if valVmid, ok := defconf["vmid"]; ok {
+    	confVmid = valVmid.(string)
     }
     
     rerrorcount = 0
@@ -128,13 +138,31 @@ func main() {
 	
 			infid := rand.Intn(ninfids)
 			vmid := rand.Intn(nvmids)
+			
 		    //encoder := gob.NewEncoder(conn)
 		    encoder := json.NewEncoder(conn)
 		    v, _ := mem.VirtualMemory()
-		    c, _ := cpu.Percent(cpuPeriod.(time.Duration) * time.Second, false)
+		    c, _ := cpu.Percent(time.Duration(cpuPeriod.(int)) * time.Second, false)
+		    var strInfid string
+		    var strVmid string
+		    
+		    if confInfid != "" {
+		    	strInfid = confInfid
+		    } else {
+		    	strInfid = infidarray[infid]
+		    }
+		    
+		    if confVmid != "" {
+		    	strVmid = confVmid
+		    } else {
+		    	strVmid = vmidarray[vmid]
+		    }
+		    
 		    cmessage := &Tmessage{
-		    	Infid:infidarray[infid],
-		    	Vmid:vmidarray[vmid],
+		    	//Infid:infidarray[infid],
+		    	//Vmid:vmidarray[vmid],
+		    	Infid:strInfid,
+		    	Vmid:strVmid,
 		    	Data:map[string]int{
 		    		//"cpu":rand.Intn(100),
 		    		//"mem":rand.Intn(100),
