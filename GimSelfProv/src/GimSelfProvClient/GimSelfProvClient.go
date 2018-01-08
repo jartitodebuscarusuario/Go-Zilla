@@ -45,7 +45,6 @@ func main() {
     var iter int
     var nmessages int
     var encoder string
-    var tpause int
     
     var CONN_HOST string
     var CONN_TYPE string
@@ -57,10 +56,9 @@ func main() {
     flag.IntVar(&nvmids, "nvmids", 1, "Number of vmids (default: 1)")
     flag.IntVar(&iter, "iter", 1, "Number of iterations (default: 1)")
     flag.IntVar(&nmessages, "nmessages", 1, "Number of iterations (default: 1)")
-    flag.IntVar(&tpause, "tpause", 0, "Number of seconds to pause between messages (default: 0)")
     flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to connect to (default: ::1)")
     flag.StringVar(&CONN_PORT, "port", "8888", "Port to connect to (default: 8888)")
-    flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
+    flag.StringVar(&CONN_TYPE, "type", "tcp4", "Connection type (default: tcp)")
     flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
     flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
@@ -112,7 +110,6 @@ func main() {
 	}
 	
     servAddr := "[" + CONN_HOST + "]:" + CONN_PORT
-    fmt.Println("HOST, PORT:", CONN_HOST, CONN_PORT)
     tcpAddr, err := net.ResolveTCPAddr(CONN_TYPE, servAddr)
     if err != nil {
         fmt.Println("ResolveTCPAddr failed:", err.Error())
@@ -188,13 +185,12 @@ func main() {
 		    }
 			//conn.Close()
 		    wprint("reply from server=", string(reply))
-		    time.Sleep(time.Duration(tpause) * time.Second)
+		    //time.Sleep(100 * time.Millisecond)
 		    }
 	    conn.Close()
 	    wg.Done()
 		}(&wg)
-	    time.Sleep(time.Duration(tpause) * time.Second)
-	}
+    }
 	wg.Wait()
 	t := time.Now()
 	fmt.Println("Done in",t.Sub(start)," Errors read: ",rerrorcount,"Errors connect: ",serrorcount)
