@@ -1,0 +1,7 @@
+{
+	"host": "::1",
+	"port": "8888",
+	"infid": "INFID",
+	"vmid": "VMID",
+	"cpuPeriod" : 1
+}
