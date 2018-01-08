@@ -27,7 +27,7 @@ type Vmdata struct {
 type Infdata struct {
 	sync.RWMutex
 	Data map[string]*Vmdata
-	Conf map[string]int
+	Conf map[string]interface{}
 	Alarm map[string][]bool
 }
 

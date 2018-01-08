@@ -16,7 +16,7 @@ type Response struct {
 
 
 //func XmlRpcCall(method string, args struct { IMCred struct { Id string`xml:"id"`; Type string`xml:"type"`; Username string`xml:"username"`; Password string`xml:"password"` } }) (reply struct{Message string}, err error) {
-func XmlRpcCall(method string, args struct { Credential []interface{} }) (reply struct { Response []map[string][]interface{} `xml:"params"`; }, err error) {
+func XmlRpcCall(method string, args struct { Credential []interface{} }) (reply struct { Params map[string]map[string]map[string]interface{} `xml:"params"`; }, err error) {
 //func XmlRpcCall(method string, args [1]interface{}) (reply struct{Message string}, err error) {	
     
     type IMResponse struct { 
@@ -98,6 +98,6 @@ func main() {
         log.Println("XmlRpcCall error: ",err)
     }
 
-    log.Printf("Response: %v\n", reply.Response)
+    log.Printf("Response: %v\n", reply.Params)
 }
 

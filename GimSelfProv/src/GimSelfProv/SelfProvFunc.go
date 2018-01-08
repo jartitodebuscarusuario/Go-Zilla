@@ -13,25 +13,34 @@ func evaluatesp (infid string) {
 	emptyAlarm = append(emptyAlarm, false)
   }
   //Find param to evaluate sp (cpu or mem)
-  var paramsp string
+  /*var paramsp string
   for key, val := range evalsp {
     if val == infmap.Data[infid].Conf["evalsp"] {
 	  	  paramsp = key
     }
-  }
+  }*/
+  paramsp := infmap.Data[infid].Conf["evalsp"].(string)
   //Evaluate cpu slice of alarms (count true values in array of alarms)
   alarm := infmap.Data[infid].Alarm["up" +  paramsp]
   count := 0
   for _, val := range alarm {
     if val == true {
       count++
-      if count >= infmap.Data[infid].Conf["numalert"] && infmap.Data[infid].Conf["nvm"] < infmap.Data[infid].Conf["maxvm"] {
+      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
       	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
-      	timer := time.NewTimer(time.Second * time.Duration(time2activesp))
+      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
+		if VmAdded, ok := deployVm2Inf(infid); ok {
+			wprint("Succesfully added vm", VmAdded)
+			//infmap.Data[infid].Conf["nvm"].(int)++
+			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
+		} else {
+			wprint("Error adding vm, exiting")
+			//os.Exit(1)
+		}
       	go func (time int, infid string) {
       		<-timer.C
 	        // If main() finishes before the 60 second timer, we won't get here
@@ -41,7 +50,7 @@ func evaluatesp (infid string) {
 	        infmap.Data[infid].Unlock()
 	        infmap.RUnlock()
 	        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
-      	}(time2activesp, infid)
+      	}(time2activesp.(int), infid)
       	wprint("Triggered up" + paramsp + " sp for infid " + infid)
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
@@ -53,13 +62,23 @@ func evaluatesp (infid string) {
   for _, val := range alarm {
     if val == true {
       count++
-      if count >= infmap.Data[infid].Conf["numalert"] && infmap.Data[infid].Conf["nvm"] > infmap.Data[infid].Conf["minvm"] {
+      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
       	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
-      	timer := time.NewTimer(time.Second * time.Duration(time2activesp))
+      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
+      	for VmAdded, _ := range infmap.Data[infid].Data {
+      		if ok := delVmFromInf(infid, VmAdded); ok {
+				wprint("Successfully deleted vm", VmAdded)
+				//infmap.Data[infid].Conf["nvm"]--
+				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
+			} else {
+				wprint("Error deleting vm", VmAdded)
+			}
+			break
+      	}
       	go func (time int, infid string) {
       		<-timer.C
 	        // If main() finishes before the 60 second timer, we won't get here
@@ -69,7 +88,7 @@ func evaluatesp (infid string) {
 	        infmap.Data[infid].Unlock()
 	        infmap.RUnlock()
 	        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
-      	}(time2activesp, infid)
+      	}(time2activesp.(int), infid)
       	wprint("Triggered down" + paramsp + " sp for infid " + infid)
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
@@ -91,14 +110,15 @@ func checkInfid(infid string) {
 	infmap.Lock()
 	infmap.Data[infid] = &Infdata{ 
 	  Data: map[string]*Vmdata{},
-	  Conf: map[string]int{
+	  Conf: map[string]interface{}{
 	    "upcpu": int(defconf["upcpu"].(float64)),
 		"downcpu": int(defconf["downcpu"].(float64)),
 		"upmem": int(defconf["upmem"].(float64)),
 		"downmem": int(defconf["downmem"].(float64)),
 		"numalert": int(defconf["numalert"].(float64)),
 		"numsamples": int(defconf["numsamples"].(float64)),
-		"evalsp": evalsp[string(defconf["evalsp"].(string))],
+		//"evalsp": evalsp[string(defconf["evalsp"].(string))],
+		"evalsp": string(defconf["evalsp"].(string)),
 		"activesp": int(defconf["activesp"].(float64)),
 		"tactsp": int(defconf["tactsp"].(float64)),
 		"maxvm": int(defconf["maxvm"].(float64)),
@@ -134,15 +154,16 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
   infmap.infidRLock(infid)
   defer infmap.infidRUnlock(infid)
   
-  if (infmap.Data[infid].Conf["activesp"] > 0) {
+  if (infmap.Data[infid].Conf["activesp"].(int) > 0) {
 	  
 	  //Find param to evaluate sp (cpu or mem)
 	  var paramsp string
-	  for key, val := range evalsp {
+	  /* for key, val := range evalsp {
 	  	if val == infmap.Data[infid].Conf["evalsp"] {
 	  	  paramsp = key	
 	  	}
-	  }
+	  } */
+	  paramsp = infmap.Data[infid].Conf["evalsp"].(string)
 	  //Calculate average paramsp in infid
 	  sum := 0
 	  count := 0
@@ -162,14 +183,14 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 	  wprint("Evaluating in infid " + infid + " paramsp " + paramsp + " average ", sum/count)	
 	  average := sum/count	
 	  //Evaluate is received data over limits and modify Alarm slices
-		  if average > infmap.Data[infid].Conf["up" + paramsp] {
+		  if average > infmap.Data[infid].Conf["up" + paramsp].(int) {
 		  	infmap.Data[infid].RUnlock()
 		  	infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], true)
 		  	infmap.Data[infid].Unlock()
 		  	infmap.Data[infid].RLock()
-		  } else if average < infmap.Data[infid].Conf["down" + paramsp] {
+		  } else if average < infmap.Data[infid].Conf["down" + paramsp].(int) {
 		  	infmap.Data[infid].RUnlock()
 		  	infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
