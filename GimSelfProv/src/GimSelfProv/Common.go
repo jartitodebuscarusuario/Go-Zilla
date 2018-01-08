@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 	"net"
 	"encoding/json"
@@ -10,9 +12,12 @@ import (
 
 //Global vars
 var noprint bool
+var LogFile *os.File
+var LogChan chan string
+var errLogFile error
 //var infmap Infmap
 var infmap *Infmap
-var evalsp map[string]int
+//var evalsp map[string]int
 var defconf map[string]interface{}
 var nvm int
 var encoder string
@@ -26,10 +31,20 @@ func readConf(file string) map[string]interface{} {
 	var fconf interface{}
 	err = json.Unmarshal(dat, &fconf)
 		if err != nil {
-		  fmt.Println("error:", err)
+		  log.Println("error:", err)
 	}
 	conf = fconf.(map[string]interface{})
 	return conf
+}
+
+func openLogFile(logfile string) (filelog *os.File, errorlog error) {
+	f, err := os.OpenFile(logfile, os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+	if err != nil {
+	    //fmt.Printf("error opening file: %v\n", err)
+	    return nil, err
+	} else {
+		return f, nil
+	}	
 }
 
 // Handles incoming requests.
@@ -116,7 +131,9 @@ func (mapinf *Infmap)AddVmidData(idinf string, idvm string, vmdata map[string]in
 
 func wprint(param ...interface{}) {
 	if !noprint {
-		fmt.Println(param)
+		log.Println(param)
+		LogChan <- fmt.Sprintf("%v", param)
+		log.Println("Send to channel:", param)
 	}
 }
 

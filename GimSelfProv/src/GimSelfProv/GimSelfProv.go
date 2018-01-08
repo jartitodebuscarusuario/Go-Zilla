@@ -17,11 +17,11 @@ func main() {
   var CONN_PORT string
   var CONN_HTTP_PORT string
     
-  flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to bind (default: agracia7)")
+  flag.StringVar(&CONN_HOST, "host", "::1", "Hostname to bind (default: ::1)")
   flag.StringVar(&CONN_PORT, "port", "8888", "Port to bind (default: 8888)")
   flag.StringVar(&CONN_HTTP_PORT, "http_port", "9090", "Http port to bind (default: 9090)")
   flag.StringVar(&CONN_TYPE, "type", "tcp6", "Connection type (default: tcp)")
-  flag.BoolVar(&noprint, "noprint", true, "Supress output (default: false)")
+  flag.BoolVar(&noprint, "noprint", false, "Supress output (default: false)")
   flag.IntVar(&nvm, "nvm", 1, "Machines per inf (default: 1)")
   flag.StringVar(&encoder, "encoder", "json", "Message encoding type (default: json)")
     
@@ -31,21 +31,33 @@ func main() {
   if derr != nil {
 	  log.Fatal(derr)
   }
-    
+  
+  //Initialize log channel, used to send log to http client through websocket
+  LogChan = make(chan string, 1000)
+  
   //Initialize infmap
   infmap = &Infmap{ Data: map[string]*Infdata{} }
   //infmap.Data = map[string]*Infdata{}
 	
   //Initialize evalsp (how we evaluate sp)
-  evalsp = map[string]int{
+  /* evalsp = map[string]int{
 	"cpu": 0,
 	"mem": 1,
-  }
+  } */
     
   //Load default conf from file
   defconf = readConf(dir + "/config.json")
 	
   fmt.Println(defconf)
+  
+  LogFile, errLogFile = openLogFile(dir + "/gimselfprov.log")
+  
+  if errLogFile != nil {
+  	fmt.Println("Error opening log file:", errLogFile)
+  } else {
+  	log.SetOutput(LogFile)
+  	defer LogFile.Close()
+  }
 	
   go func() {
 
@@ -74,7 +86,7 @@ func main() {
     }
   }()
   
-  http.HandleFunc("/", regInfid) // set router
+  http.HandleFunc("/", HttpService) // set router
   err := http.ListenAndServe(":" + CONN_HTTP_PORT, nil) // set listen port
   if err != nil {
         log.Fatal("ListenAndServe: ", err)
