@@ -1,8 +1,0 @@
-2017/12/21 10:30:53 [Count:  1  nvm  1]
-2017/12/21 10:30:53 [Evaluating in infid a0abcdb6-e631-11e7-8063-16abc510a9dc paramsp cpu average  15]
-2017/12/21 10:30:53 [Added data map[cpu:-1 mem:74] to vmid 0 in infid a0abcdb6-e631-11e7-8063-16abc510a9dc]
-2017/12/21 10:30:53 [timeCounter:  319ms]
-2017/12/21 10:35:34 [Count:  1  nvm  1]
-2017/12/21 10:35:34 [Evaluating in infid 48447776-e632-11e7-9154-16abc510a9dc paramsp cpu average  14]
-2017/12/21 10:35:34 [Added data map[cpu:-1 mem:74] to vmid 0 in infid 48447776-e632-11e7-9154-16abc510a9dc]
-2017/12/21 10:35:34 [timeCounter:  130ms]
