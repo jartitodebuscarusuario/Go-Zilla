@@ -37,7 +37,18 @@ func evaluatesp (infid string) {
 			wprint("Succesfully added vm", VmAdded)
 			//infmap.Data[infid].Conf["nvm"].(int)++
 			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
+			//Empty alarm slice
 			alarm = emptyAlarm
+			//Reset monitorized values in vm's map
+			for vmid, val := range infmap.Data[infid].Data {
+	  	      infmap.Data[infid].Data[vmid].Lock()
+	  	      for key, _ := range val.Data {
+	  		    if key == paramsp {
+		  		  val.Data[key] = -1
+	  		    }
+	  	      }
+	  	      infmap.Data[infid].Data[vmid].Unlock()
+	        }			
 		} else {
 			wprint("Error adding vm, exiting")
 			//os.Exit(1)
@@ -76,7 +87,18 @@ func evaluatesp (infid string) {
 				//infmap.Data[infid].Conf["nvm"]--
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
 				delete(infmap.Data[infid].Data, VmAdded)
+				//Empty alarm slice
 				alarm = emptyAlarm
+				//Reset monitorized values in vm's map
+				for vmid, val := range infmap.Data[infid].Data {
+		  	      infmap.Data[infid].Data[vmid].Lock()
+		  	      for key, _ := range val.Data {
+		  		    if key == paramsp {
+			  		  val.Data[key] = -1
+		  		    }
+		  	      }
+		  	      infmap.Data[infid].Data[vmid].Unlock()
+		        }
 			} else {
 				wprint("Error deleting vm", VmAdded)
 			}
