@@ -34,7 +34,7 @@ func evaluatesp (infid string) {
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
 		if VmAdded, ok := deployVm2Inf(infid); ok {
-			wprint("Succesfully added vm", VmAdded)
+			wprint("Succesfully added vm", VmAdded, "paramsp", paramsp)
 			//infmap.Data[infid].Conf["nvm"].(int)++
 			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
 			//Empty alarm slice
@@ -83,7 +83,7 @@ func evaluatesp (infid string) {
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
       	for VmAdded, _ := range infmap.Data[infid].Data {
       		if ok := delVmFromInf(infid, VmAdded); ok {
-				wprint("Successfully deleted vm", VmAdded)
+				wprint("Successfully deleted vm", VmAdded, "paramsp", paramsp)
 				//infmap.Data[infid].Conf["nvm"]--
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
 				delete(infmap.Data[infid].Data, VmAdded)
