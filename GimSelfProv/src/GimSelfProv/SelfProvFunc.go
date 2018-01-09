@@ -37,6 +37,7 @@ func evaluatesp (infid string) {
 			wprint("Succesfully added vm", VmAdded)
 			//infmap.Data[infid].Conf["nvm"].(int)++
 			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
+			alarm = emptyAlarm
 		} else {
 			wprint("Error adding vm, exiting")
 			//os.Exit(1)
@@ -75,6 +76,7 @@ func evaluatesp (infid string) {
 				//infmap.Data[infid].Conf["nvm"]--
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
 				delete(infmap.Data[infid].Data, VmAdded)
+				alarm = emptyAlarm
 			} else {
 				wprint("Error deleting vm", VmAdded)
 			}
