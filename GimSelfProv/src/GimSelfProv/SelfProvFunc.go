@@ -74,6 +74,7 @@ func evaluatesp (infid string) {
 				wprint("Successfully deleted vm", VmAdded)
 				//infmap.Data[infid].Conf["nvm"]--
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
+				delete(infmap.Data[infid].Data, VmAdded)
 			} else {
 				wprint("Error deleting vm", VmAdded)
 			}
