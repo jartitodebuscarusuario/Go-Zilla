@@ -235,6 +235,8 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 		  	infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], true)
+		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
+		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], false)
 		  	infmap.Data[infid].Unlock()
 		  	infmap.Data[infid].RLock()
 		  } else if average < infmap.Data[infid].Conf["down" + paramsp].(int) {
@@ -242,6 +244,8 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 		  	infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], true)
+		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
+		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], false)
 		  	infmap.Data[infid].Unlock()
 		  	infmap.Data[infid].RLock()
 		  } else {
