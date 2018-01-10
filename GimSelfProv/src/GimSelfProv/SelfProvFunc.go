@@ -31,8 +31,9 @@ func evaluatesp (infid string) {
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
-      	//Empty alarm slice
+      	//Empty alarm slices
       	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
+      	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
       	//Don't evaluate sp, give time to launch new machine
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
@@ -81,8 +82,9 @@ func evaluatesp (infid string) {
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
-      	//Empty alarm slice
+      	//Empty alarm slices
       	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+      	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
       	//Don't evaluate sp, give time to delete machine
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
