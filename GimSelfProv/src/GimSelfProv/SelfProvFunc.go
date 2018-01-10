@@ -23,12 +23,13 @@ func evaluatesp (infid string) {
   //Evaluate cpu slice of alarms (count true values in array of alarms)
   //alarm := infmap.Data[infid].Alarm["up" +  paramsp]
   count := 0
-  for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
+  for _, val := range infmap.Data[infid].Alarm["up" +  paramsp] {
     if val == true {
       count++
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
+      	//Empty alarm slice
       	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
@@ -37,8 +38,6 @@ func evaluatesp (infid string) {
 			wprint("Succesfully added vm", VmAdded, "paramsp", paramsp)
 			//infmap.Data[infid].Conf["nvm"].(int)++
 			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
-			//Empty alarm slice
-			infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
 			//Reset monitorized values in vm's map
 			for vmid, val := range infmap.Data[infid].Data {
 	  	      infmap.Data[infid].Data[vmid].Lock()
@@ -78,18 +77,18 @@ func evaluatesp (infid string) {
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
       	infmap.Data[infid].RUnlock()
       	infmap.Data[infid].Lock()
+      	//Empty alarm slice
       	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
-      	for VmAdded, _ := range infmap.Data[infid].Data {
-      		if ok := delVmFromInf(infid, VmAdded); ok {
-				wprint("Successfully deleted vm", VmAdded, "paramsp", paramsp)
+      	for VmDeleted, _ := range infmap.Data[infid].Data {
+      		if ok := delVmFromInf(infid, VmDeleted); ok {
+				wprint("Successfully deleted vm", VmDeleted, "paramsp", paramsp)
 				//infmap.Data[infid].Conf["nvm"]--
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
-				delete(infmap.Data[infid].Data, VmAdded)
-				//Empty alarm slice
-				infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+				//Delete machine from infid map
+				delete(infmap.Data[infid].Data, VmDeleted)
 				//Reset monitorized values in vm's map
 				for vmid, val := range infmap.Data[infid].Data {
 		  	      infmap.Data[infid].Data[vmid].Lock()
@@ -101,7 +100,7 @@ func evaluatesp (infid string) {
 		  	      infmap.Data[infid].Data[vmid].Unlock()
 		        }
 			} else {
-				wprint("Error deleting vm", VmAdded)
+				wprint("Error deleting vm", VmDeleted)
 			}
 			break
       	}
