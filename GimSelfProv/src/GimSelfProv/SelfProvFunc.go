@@ -21,9 +21,9 @@ func evaluatesp (infid string) {
   }*/
   paramsp := infmap.Data[infid].Conf["evalsp"].(string)
   //Evaluate cpu slice of alarms (count true values in array of alarms)
-  alarm := infmap.Data[infid].Alarm["up" +  paramsp]
+  //alarm := infmap.Data[infid].Alarm["up" +  paramsp]
   count := 0
-  for _, val := range alarm {
+  for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
     if val == true {
       count++
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
@@ -38,7 +38,7 @@ func evaluatesp (infid string) {
 			//infmap.Data[infid].Conf["nvm"].(int)++
 			infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
 			//Empty alarm slice
-			alarm = emptyAlarm
+			infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
 			//Reset monitorized values in vm's map
 			for vmid, val := range infmap.Data[infid].Data {
 	  	      infmap.Data[infid].Data[vmid].Lock()
@@ -67,11 +67,12 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }
+      break
     }
   }
-  alarm = infmap.Data[infid].Alarm["down" +  paramsp]
+  //alarm = infmap.Data[infid].Alarm["down" +  paramsp]
   count = 0   
-  for _, val := range alarm {
+  for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
     if val == true {
       count++
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
@@ -88,7 +89,7 @@ func evaluatesp (infid string) {
 				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
 				delete(infmap.Data[infid].Data, VmAdded)
 				//Empty alarm slice
-				alarm = emptyAlarm
+				infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
 				//Reset monitorized values in vm's map
 				for vmid, val := range infmap.Data[infid].Data {
 		  	      infmap.Data[infid].Data[vmid].Lock()
@@ -118,6 +119,7 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }
+      break
     }
   }
   infmap.Data[infid].RUnlock()
