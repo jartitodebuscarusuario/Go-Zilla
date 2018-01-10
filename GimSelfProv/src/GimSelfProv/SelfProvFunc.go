@@ -25,78 +25,25 @@ func evaluatesp (infid string) {
 	  //alarm := infmap.Data[infid].Alarm["up" +  paramsp]
 	  wprint("Going to evaluate alarm slices, up =>", infmap.Data[infid].Alarm["up" +  paramsp], ", down =>", infmap.Data[infid].Alarm["down" +  paramsp])
 	  count := 0
-	  for _, val := range infmap.Data[infid].Alarm["up" +  paramsp] {
-	    if val == true {	
-	      count++
-	      wprint("Detected alarm up", paramsp, ", count", count)
-	      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
-	      	infmap.Data[infid].RUnlock()
-	      	infmap.Data[infid].Lock()
-	      	//Empty alarm slices
-	      	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
-	      	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
-	      	//Don't evaluate sp, give time to launch new machine
-	      	infmap.Data[infid].Conf["activesp"] = 0
-	      	time2activesp := infmap.Data[infid].Conf["tactsp"]
-	      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
-			if VmAdded, ok := deployVm2Inf(infid); ok {
-				wprint("Succesfully added vm", VmAdded, "paramsp", paramsp)
-				//infmap.Data[infid].Conf["nvm"].(int)++
-				infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
-				//Reset monitorized values in vm's map
-				for vmid, val := range infmap.Data[infid].Data {
-		  	      infmap.Data[infid].Data[vmid].Lock()
-		  	      for key, _ := range val.Data {
-		  		    if key == paramsp {
-			  		  val.Data[key] = -1
-		  		    }
-		  	      }
-		  	      infmap.Data[infid].Data[vmid].Unlock()
-		        }			
-			} else {
-				wprint("Error adding vm, exiting")
-				//os.Exit(1)
-			}
-	      	go func (time int, infid string) {
-	      		<-timer.C
-		        // If main() finishes before the 60 second timer, we won't get here
-		        infmap.RLock()
-		        infmap.Data[infid].Lock()
-		        infmap.Data[infid].Conf["activesp"] = 1
-		        infmap.Data[infid].Unlock()
-		        infmap.RUnlock()
-		        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
-	      	}(time2activesp.(int), infid)
-	      	wprint("Triggered up" + paramsp + " sp for infid " + infid)
-	      	infmap.Data[infid].Unlock()
-	      	infmap.Data[infid].RLock()
-	      }
-	      //break
-	    }
-	  }
-	  //alarm = infmap.Data[infid].Alarm["down" +  paramsp]
-	  count = 0   
-	  for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
-	    if val == true {	
-	      count++
-	      wprint("Detected alarm down", paramsp, ", count", count)
-	      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
-	      	infmap.Data[infid].RUnlock()
-	      	infmap.Data[infid].Lock()
-	      	//Empty alarm slices
-	      	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
-	      	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
-	      	//Don't evaluate sp, give time to delete machine
-	      	infmap.Data[infid].Conf["activesp"] = 0
-	      	time2activesp := infmap.Data[infid].Conf["tactsp"]
-	      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
-	      	for VmDeleted, _ := range infmap.Data[infid].Data {
-	      		if ok := delVmFromInf(infid, VmDeleted); ok {
-					wprint("Successfully deleted vm", VmDeleted, "paramsp", paramsp)
-					//infmap.Data[infid].Conf["nvm"]--
-					infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
-					//Delete machine from infid map
-					delete(infmap.Data[infid].Data, VmDeleted)
+	  if infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
+		  for _, val := range infmap.Data[infid].Alarm["up" +  paramsp] {
+		    if val == true {	
+		      count++
+		      wprint("Detected alarm up", paramsp, ", count", count)
+		      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
+		      	infmap.Data[infid].RUnlock()
+		      	infmap.Data[infid].Lock()
+		      	//Empty alarm slices
+		      	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
+		      	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+		      	//Don't evaluate sp, give time to launch new machine
+		      	infmap.Data[infid].Conf["activesp"] = 0
+		      	time2activesp := infmap.Data[infid].Conf["tactsp"]
+		      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
+				if VmAdded, ok := deployVm2Inf(infid); ok {
+					wprint("Succesfully added vm", VmAdded, "paramsp", paramsp)
+					//infmap.Data[infid].Conf["nvm"].(int)++
+					infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
 					//Reset monitorized values in vm's map
 					for vmid, val := range infmap.Data[infid].Data {
 			  	      infmap.Data[infid].Data[vmid].Lock()
@@ -106,29 +53,90 @@ func evaluatesp (infid string) {
 			  		    }
 			  	      }
 			  	      infmap.Data[infid].Data[vmid].Unlock()
-			        }
+			        }			
 				} else {
-					wprint("Error deleting vm", VmDeleted)
+					wprint("Error adding vm, exiting")
+					//os.Exit(1)
 				}
-				break
-	      	}
-	      	go func (time int, infid string) {
-	      		<-timer.C
-		        // If main() finishes before the 60 second timer, we won't get here
-		        infmap.RLock()
-		        infmap.Data[infid].Lock()
-		        infmap.Data[infid].Conf["activesp"] = 1
-		        infmap.Data[infid].Unlock()
-		        infmap.RUnlock()
-		        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
-	      	}(time2activesp.(int), infid)
-	      	wprint("Triggered down" + paramsp + " sp for infid " + infid)
-	      	infmap.Data[infid].Unlock()
-	      	infmap.Data[infid].RLock()
-	      }
-	      //break
-	    }
-	  }
+		      	go func (time int, infid string) {
+		      		<-timer.C
+			        // If main() finishes before the 60 second timer, we won't get here
+			        infmap.RLock()
+			        infmap.Data[infid].Lock()
+			        infmap.Data[infid].Conf["activesp"] = 1
+			        infmap.Data[infid].Unlock()
+			        infmap.RUnlock()
+			        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
+		      	}(time2activesp.(int), infid)
+		      	wprint("Triggered up" + paramsp + " sp for infid " + infid)
+		      	infmap.Data[infid].Unlock()
+		      	infmap.Data[infid].RLock()
+		      }
+		      //break
+		    }
+		  }
+	  } else {
+	  	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
+	  } 	  
+	  //alarm = infmap.Data[infid].Alarm["down" +  paramsp]
+	  count = 0
+	  if infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
+		  for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
+		    if val == true {	
+		      count++
+		      wprint("Detected alarm down", paramsp, ", count", count)
+		      if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
+		      	infmap.Data[infid].RUnlock()
+		      	infmap.Data[infid].Lock()
+		      	//Empty alarm slices
+		      	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+		      	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
+		      	//Don't evaluate sp, give time to delete machine
+		      	infmap.Data[infid].Conf["activesp"] = 0
+		      	time2activesp := infmap.Data[infid].Conf["tactsp"]
+		      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
+		      	for VmDeleted, _ := range infmap.Data[infid].Data {
+		      		if ok := delVmFromInf(infid, VmDeleted); ok {
+						wprint("Successfully deleted vm", VmDeleted, "paramsp", paramsp)
+						//infmap.Data[infid].Conf["nvm"]--
+						infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) - 1
+						//Delete machine from infid map
+						delete(infmap.Data[infid].Data, VmDeleted)
+						//Reset monitorized values in vm's map
+						for vmid, val := range infmap.Data[infid].Data {
+				  	      infmap.Data[infid].Data[vmid].Lock()
+				  	      for key, _ := range val.Data {
+				  		    if key == paramsp {
+					  		  val.Data[key] = -1
+				  		    }
+				  	      }
+				  	      infmap.Data[infid].Data[vmid].Unlock()
+				        }
+					} else {
+						wprint("Error deleting vm", VmDeleted)
+					}
+					break
+		      	}
+		      	go func (time int, infid string) {
+		      		<-timer.C
+			        // If main() finishes before the 60 second timer, we won't get here
+			        infmap.RLock()
+			        infmap.Data[infid].Lock()
+			        infmap.Data[infid].Conf["activesp"] = 1
+			        infmap.Data[infid].Unlock()
+			        infmap.RUnlock()
+			        wprint("Congratulations! Your ", time2activesp, " second timer for infid " + infid + " finished.")
+		      	}(time2activesp.(int), infid)
+		      	wprint("Triggered down" + paramsp + " sp for infid " + infid)
+		      	infmap.Data[infid].Unlock()
+		      	infmap.Data[infid].RLock()
+		      }
+		      //break
+		    }
+		  }
+	   } else {
+	   	 infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+	   }  
     }  
 	infmap.Data[infid].RUnlock()
 	infmap.RUnlock()
