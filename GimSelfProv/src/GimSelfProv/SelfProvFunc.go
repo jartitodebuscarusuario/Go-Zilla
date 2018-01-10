@@ -41,7 +41,7 @@ func evaluatesp (infid string) {
 		      	time2activesp := infmap.Data[infid].Conf["tactsp"]
 		      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
 				if VmAdded, ok := deployVm2Inf(infid); ok {
-					wprint("Succesfully added vm", VmAdded, "paramsp", paramsp)
+					wprint("Successfully added vm", VmAdded, "paramsp", paramsp)
 					//infmap.Data[infid].Conf["nvm"].(int)++
 					infmap.Data[infid].Conf["nvm"] = infmap.Data[infid].Conf["nvm"].(int) + 1
 					//Reset monitorized values in vm's map
@@ -95,7 +95,11 @@ func evaluatesp (infid string) {
 		      	infmap.Data[infid].Conf["activesp"] = 0
 		      	time2activesp := infmap.Data[infid].Conf["tactsp"]
 		      	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
-		      	for VmDeleted, _ := range infmap.Data[infid].Data {
+		      	var VmDeleted string
+		      	for Vm2Delete, _ := range infmap.Data[infid].Data {
+		      		VmDeleted = Vm2Delete
+		      	}
+		      	//for VmDeleted, _ := range infmap.Data[infid].Data {
 		      		if ok := delVmFromInf(infid, VmDeleted); ok {
 						wprint("Successfully deleted vm", VmDeleted, "paramsp", paramsp)
 						//infmap.Data[infid].Conf["nvm"]--
@@ -115,8 +119,8 @@ func evaluatesp (infid string) {
 					} else {
 						wprint("Error deleting vm", VmDeleted)
 					}
-					break
-		      	}
+					//break
+		      	//}
 		      	go func (time int, infid string) {
 		      		<-timer.C
 			        // If main() finishes before the 60 second timer, we won't get here
@@ -238,6 +242,16 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 		  	infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], true)
+		  	infmap.Data[infid].Unlock()
+		  	infmap.Data[infid].RLock()
+		  } else {
+		  	//There are no alarms
+		  	infmap.Data[infid].RUnlock()
+		  	infmap.Data[infid].Lock()
+		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
+		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], false)
+		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
+		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], false)
 		  	infmap.Data[infid].Unlock()
 		  	infmap.Data[infid].RLock()
 		  }
