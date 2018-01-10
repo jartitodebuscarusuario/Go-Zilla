@@ -230,35 +230,39 @@ func addData2InfidVmid (infid string, vmid string, data map[string]int) {
 	  wprint("Evaluating in infid " + infid + " paramsp " + paramsp + " average ", sum/count)	
 	  average := sum/count	
 	  //Evaluate is received data over limits and modify Alarm slices
+		  infmap.Data[infid].RUnlock()
+		  infmap.Data[infid].Lock()
 		  if average > infmap.Data[infid].Conf["up" + paramsp].(int) {
-		  	infmap.Data[infid].RUnlock()
-		  	infmap.Data[infid].Lock()
+		  	//infmap.Data[infid].RUnlock()
+		  	//infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], true)
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], false)
-		  	infmap.Data[infid].Unlock()
-		  	infmap.Data[infid].RLock()
+		  	//infmap.Data[infid].Unlock()
+		  	//infmap.Data[infid].RLock()
 		  } else if average < infmap.Data[infid].Conf["down" + paramsp].(int) {
-		  	infmap.Data[infid].RUnlock()
-		  	infmap.Data[infid].Lock()
+		  	//infmap.Data[infid].RUnlock()
+		  	//infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], true)
 		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], false)
-		  	infmap.Data[infid].Unlock()
-		  	infmap.Data[infid].RLock()
+		  	//infmap.Data[infid].Unlock()
+		  	//infmap.Data[infid].RLock()
 		  } else {
 		  	//There are no alarms
-		  	infmap.Data[infid].RUnlock()
-		  	infmap.Data[infid].Lock()
+		  	//infmap.Data[infid].RUnlock()
+		  	//infmap.Data[infid].Lock()
 		  	infmap.Data[infid].Alarm["up" + paramsp] = infmap.Data[infid].Alarm["up" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["up" + paramsp] = append(infmap.Data[infid].Alarm["up" + paramsp], false)
 		  	infmap.Data[infid].Alarm["down" + paramsp] = infmap.Data[infid].Alarm["down" + paramsp][1:]
 		  	infmap.Data[infid].Alarm["down" + paramsp] = append(infmap.Data[infid].Alarm["down" + paramsp], false)
-		  	infmap.Data[infid].Unlock()
-		  	infmap.Data[infid].RLock()
+		  	//infmap.Data[infid].Unlock()
+		  	//infmap.Data[infid].RLock()
 		  }
+		  infmap.Data[infid].Unlock()
+		  infmap.Data[infid].RLock()
 		  //Set values of paramsp to -1 in all machines in infid, wait for new values in all machines of infid
 		  for vmid, val := range infmap.Data[infid].Data {
 		  	infmap.Data[infid].Data[vmid].Lock()
