@@ -129,6 +129,7 @@ func (mapinf *Infmap)AddVmidData(idinf string, idvm string, vmdata map[string]in
 	mapinf.Data[idinf].Data[idvm].Data = vmdata	
 }
 
+//TODO: make non blocking channel print
 func wprint(param ...interface{}) {
 	if !noprint {
 		log.Println(param)
