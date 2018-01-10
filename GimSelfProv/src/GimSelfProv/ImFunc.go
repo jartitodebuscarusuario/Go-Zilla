@@ -20,6 +20,7 @@ func deployVm2Inf(infid string) (vmid string, ok bool){
     	fmt.Println("Error: ", err)
     	ok = false
     } else {
+    	//TODO: return error if respAdd.Status not 200
 	    fmt.Println(respAdd.Status + "(" + defconf["imhost"].(string) + "/" + infid + ")")
 	    decResp := json.NewDecoder(respAdd.Body)
 	    
@@ -47,6 +48,7 @@ func delVmFromInf(infid string, vmid string) (ok bool) {
     	ok = false
     } else {
 	    //fmt.Println(respAdd.Status)
+	    //TODO: return error if respDel.Status not 200
 		fmt.Println("Response status:", respDel.Status)
 		fmt.Println("Deleted vm", vmid)
     }

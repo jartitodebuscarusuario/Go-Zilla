@@ -75,8 +75,8 @@ func handleRequest(conn net.Conn) {
   checkInfid(message.Infid)
   checkVmid(message.Infid, message.Vmid)
   addData2InfidVmid(message.Infid, message.Vmid, message.Data)
-  evaluatesp(message.Infid)
   wprint("Added data", message.Data, "to vmid", message.Vmid, "in infid", message.Infid)
+  evaluatesp(message.Infid)
   
   wprint("timeCounter: ", time.Now().Sub(start))
   //TEST  
