@@ -22,6 +22,7 @@ func evaluatesp (infid string) {
   paramsp := infmap.Data[infid].Conf["evalsp"].(string)
   //Evaluate cpu slice of alarms (count true values in array of alarms)
   //alarm := infmap.Data[infid].Alarm["up" +  paramsp]
+  wprint("Going to evaluate alarm slices, up =>", infmap.Data[infid].Alarm["up" +  paramsp], ", down =>", infmap.Data[infid].Alarm["down" +  paramsp])
   count := 0
   for _, val := range infmap.Data[infid].Alarm["up" +  paramsp] {
     if val == true {
@@ -31,6 +32,7 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Lock()
       	//Empty alarm slice
       	infmap.Data[infid].Alarm["up" +  paramsp] = emptyAlarm
+      	//Don't evaluate sp, give time to launch new machine
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
@@ -79,6 +81,7 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Lock()
       	//Empty alarm slice
       	infmap.Data[infid].Alarm["down" +  paramsp] = emptyAlarm
+      	//Don't evaluate sp, give time to delete machine
       	infmap.Data[infid].Conf["activesp"] = 0
       	time2activesp := infmap.Data[infid].Conf["tactsp"]
       	timer := time.NewTimer(time.Second * time.Duration(time2activesp.(int)))
