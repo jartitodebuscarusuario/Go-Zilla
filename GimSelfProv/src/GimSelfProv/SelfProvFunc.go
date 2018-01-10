@@ -9,7 +9,7 @@ func evaluatesp (infid string) {
   infmap.Data[infid].RLock()	
   //Create emptyAlarm slice
   var emptyAlarm []bool
-  for i := 0; i < 5; i++ {
+  for i := 0; i < infmap.Data[infid].Conf["numsamples"].(int); i++ {
 	emptyAlarm = append(emptyAlarm, false)
   }
   //Find param to evaluate sp (cpu or mem)
