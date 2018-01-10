@@ -26,6 +26,7 @@ func evaluatesp (infid string) {
   count := 0
   for _, val := range infmap.Data[infid].Alarm["up" +  paramsp] {
     if val == true {
+      wprint("Detected alarm up", paramsp)	
       count++
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) < infmap.Data[infid].Conf["maxvm"].(int) {
       	infmap.Data[infid].RUnlock()
@@ -75,6 +76,7 @@ func evaluatesp (infid string) {
   count = 0   
   for _, val := range infmap.Data[infid].Alarm["down" +  paramsp] {
     if val == true {
+      wprint("Detected alarm down", paramsp)	
       count++
       if count >= infmap.Data[infid].Conf["numalert"].(int) && infmap.Data[infid].Conf["nvm"].(int) > infmap.Data[infid].Conf["minvm"].(int) {
       	infmap.Data[infid].RUnlock()
