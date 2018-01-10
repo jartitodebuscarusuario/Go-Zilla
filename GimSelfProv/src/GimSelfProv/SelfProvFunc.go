@@ -68,7 +68,7 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }
-      break
+      //break
     }
   }
   //alarm = infmap.Data[infid].Alarm["down" +  paramsp]
@@ -121,7 +121,7 @@ func evaluatesp (infid string) {
       	infmap.Data[infid].Unlock()
       	infmap.Data[infid].RLock()
       }
-      break
+      //break
     }
   }
   infmap.Data[infid].RUnlock()
