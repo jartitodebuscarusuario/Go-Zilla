@@ -8,6 +8,7 @@ import (
     "net/http"
     "html/template"
     "encoding/json"
+    "sync/atomic"
     "github.com/gorilla/websocket"   
 )
 
@@ -178,6 +179,8 @@ func wsLog (w http.ResponseWriter, r *http.Request, channel *chan string) {
 		return
 	}
 	defer c.Close()
+	atomic.AddInt32(&wsocketPrint, 1)
+	defer atomic.AddInt32(&wsocketPrint, -1)
 	mt, message, err := c.ReadMessage()
 	if err != nil {
 		wprint("read:", err)

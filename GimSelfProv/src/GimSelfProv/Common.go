@@ -12,6 +12,7 @@ import (
 
 //Global vars
 var noprint bool
+var wsocketPrint int32
 var LogFile *os.File
 var LogChan chan string
 var errLogFile error
@@ -75,8 +76,8 @@ func handleRequest(conn net.Conn) {
   checkInfid(message.Infid)
   checkVmid(message.Infid, message.Vmid)
   addData2InfidVmid(message.Infid, message.Vmid, message.Data)
-  wprint("Added data", message.Data, "to vmid", message.Vmid, "in infid", message.Infid)
   evaluatesp(message.Infid)
+  wprint("Added data", message.Data, "to vmid", message.Vmid, "in infid", message.Infid)
   
   wprint("timeCounter: ", time.Now().Sub(start))
   //TEST  
@@ -129,12 +130,13 @@ func (mapinf *Infmap)AddVmidData(idinf string, idvm string, vmdata map[string]in
 	mapinf.Data[idinf].Data[idvm].Data = vmdata	
 }
 
-//TODO: make non blocking channel print
 func wprint(param ...interface{}) {
 	if !noprint {
 		log.Println(param)
-		LogChan <- fmt.Sprintf("%v", param)
-		log.Println("Send to channel:", param)
+		if wsocketPrint != 0 {
+		  LogChan <- fmt.Sprintf("%v", param)
+		  log.Println("Send to channel:", param)
+		}
 	}
 }
 

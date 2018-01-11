@@ -32,6 +32,9 @@ func main() {
 	  log.Fatal(derr)
   }
   
+  //Initialize wsocketPrint, default false
+  wsocketPrint = 0
+  
   //Initialize log channel, used to send log to http client through websocket
   LogChan = make(chan string, 1000)
   
